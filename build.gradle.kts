@@ -81,24 +81,3 @@ tasks.named("build") {
     dependsOn(":spotlessApply")
 }
 
-tasks.register<Copy>("deploy") {
-    val fromSpec = copySpec {
-        from("${project.projectDir}/build/libs/sentry-2.0.2.jar")
-        from("${project.projectDir}/sentry-core/build/libs/sentry-core-2.0.2.jar")
-        from("${project.projectDir}/sentry-android/build/outputs/aar/sentry-android-release.aar")
-        from("${project.projectDir}/sentry-android-core/build/outputs/aar/sentry-android-core-release.aar")
-        from("${project.projectDir}/sentry-android-ndk/build/outputs/aar/sentry-android-ndk-release.aar")
-    }
-    copy {
-        with(fromSpec)
-        into("${project.projectDir}/../solution/app/libs")
-    }
-    copy {
-        with(fromSpec)
-        into("${project.projectDir}/../challenge/app/libs")
-    }
-}
-
-tasks.named("deploy") {
-    dependsOn(":build")
-}
