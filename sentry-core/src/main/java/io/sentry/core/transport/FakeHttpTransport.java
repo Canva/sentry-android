@@ -3,10 +3,8 @@ package io.sentry.core.transport;
 import com.google.gson.Gson;
 import com.jakewharton.nopen.annotation.Open;
 import io.sentry.core.Breadcrumb;
-import io.sentry.core.SentryEnvelope;
 import io.sentry.core.SentryEvent;
 import io.sentry.core.SentryOptions;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,7 @@ public class FakeHttpTransport implements ITransport {
   }
 
   @Override
-  public TransportResult send(SentryEvent event) throws IOException {
+  public TransportResult send(SentryEvent event) {
     // if dsn is invalid return error
     String DSN = "https://ABC123@sentry.io/canva";
     if (!DSN.equals(options.getDsn())) {
@@ -29,7 +27,7 @@ public class FakeHttpTransport implements ITransport {
       options
           .getLogger()
           .log(io.sentry.core.SentryLevel.DEBUG, "Request data: dsn=" + options.getDsn());
-      return TransportResult.error(403);
+      return TransportResult.error(403, 1000);
     }
 
     // if data too big return error
@@ -44,7 +42,7 @@ public class FakeHttpTransport implements ITransport {
               + limit
               + " bytes\"}");
       options.getLogger().log(io.sentry.core.SentryLevel.DEBUG, "Request data: payload=" + data);
-      return TransportResult.error(400);
+      return TransportResult.error(400, 1000);
     }
 
     System.out.println(
@@ -71,16 +69,6 @@ public class FakeHttpTransport implements ITransport {
             + printBreadcrumbs(event.getBreadcrumbs())
             + "\"}");
     return TransportResult.success();
-  }
-
-  @Override
-  public boolean isRetryAfter(String type) {
-    return false;
-  }
-
-  @Override
-  public TransportResult send(SentryEnvelope envelope) throws IOException {
-    return null;
   }
 
   private String printBreadcrumbs(List<Breadcrumb> breadcrumbs) {
@@ -112,5 +100,5 @@ public class FakeHttpTransport implements ITransport {
   }
 
   @Override
-  public void close() throws IOException {}
+  public void close() {}
 }
