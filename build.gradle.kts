@@ -80,4 +80,3 @@ spotless {
 tasks.named("build") {
     dependsOn(":spotlessApply")
 }
-
