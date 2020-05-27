@@ -5,7 +5,9 @@ import com.jakewharton.nopen.annotation.Open;
 import io.sentry.core.Breadcrumb;
 import io.sentry.core.SentryEvent;
 import io.sentry.core.SentryOptions;
+import io.sentry.core.protocol.User;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,37 +51,56 @@ public class FakeHttpTransport implements ITransport {
         "Sentry: request status_code=200, data={"
             + "\"throwable\": \""
             + (event.getThrowable() != null ? event.getThrowable().getMessage() : "null")
-            + "\","
+            + "\", "
             + "\"message\": \""
-            + (event.getMessage() != null ? event.getMessage().getMessage() : "null")
-            + "\","
+            + (event.getMessage() != null ? event.getMessage().getFormatted() : "null")
+            + "\", "
             + "\"level\": \""
             + event.getLevel()
-            + "\","
+            + "\", "
             + "\"user\": \""
-            + (event.getUser() != null ? event.getUser().getId() : "null")
-            + "\","
+            + (event.getUser() != null ? printUser(event.getUser()) : "null")
+            + "\", "
             + "\"tags\": \""
             + printMap(event.tags)
-            + "\","
+            + "\", "
             + "\"extras\": \""
             + printMap(event.extra)
-            + "\","
+            + "\", "
             + "\"breadcrumbs\": \""
             + printBreadcrumbs(event.getBreadcrumbs())
             + "\"}");
     return TransportResult.success();
   }
 
+  private String printUser(User user) {
+    return "{"
+        + "\"id\":"
+        + "\""
+        + user.getId()
+        + "\""
+        + ", "
+        + "\"email\":"
+        + "\""
+        + user.getEmail()
+        + "\""
+        + ", "
+        + "\"name\":"
+        + "\""
+        + user.getUsername()
+        + "\""
+        + "}";
+  }
+
   private String printBreadcrumbs(List<Breadcrumb> breadcrumbs) {
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    for (Breadcrumb breadcrumb : breadcrumbs) {
-      sb.append("{\"")
-          .append("message")
-          .append("\":\"")
-          .append(breadcrumb.getMessage())
-          .append("\"}");
+    for (int i = 0; i < breadcrumbs.size(); i++) {
+      Breadcrumb breadcrumb = breadcrumbs.get(i);
+      sb.append("{\"message\":").append("\"").append(breadcrumb.getMessage()).append("\"}");
+      if (i < breadcrumbs.size() - 1) {
+        sb.append(", ");
+      }
     }
     sb.append("]");
     return sb.toString();
@@ -88,12 +109,17 @@ public class FakeHttpTransport implements ITransport {
   private <K, V> String printMap(Map<K, V> map) {
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    for (Map.Entry<K, V> entry : map.entrySet()) {
+    List<Map.Entry<K, V>> entries = new ArrayList<>(map.entrySet());
+    for (int i = 0; i < entries.size(); i++) {
+      Map.Entry<K, V> entry = entries.get(i);
       sb.append("{\"")
           .append(entry.getKey())
           .append("\":\"")
           .append(entry.getValue())
           .append("\"}");
+      if (i < entries.size() - 1) {
+        sb.append(", ");
+      }
     }
     sb.append("]");
     return sb.toString();
